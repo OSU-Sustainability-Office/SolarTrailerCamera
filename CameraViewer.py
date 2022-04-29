@@ -8,7 +8,7 @@ from datetime import datetime
 # Constants for modifying script behavior
 CAMERA_NAME = 'C270 HD WEBCAM'
 USER_NAME = 'Milan Donhowe' # <-- change per PC
-DELAY_MS = 900000 # 10 minutes * 60 seconds * 1000 ms = 15 minutes in ms
+DELAY_S = 15 * 60 # 15 minutes * 60 seconds = 15 minutes in seconds
 UPLOAD_PATH = path.join('C:\\', 'Users', USER_NAME, 'Box', 'Sustainability Photography', 'Programs', 'Solar Trailer', 'SolarTrailerCamera')
 
 if not path.exists(UPLOAD_PATH):
@@ -62,7 +62,7 @@ def cameraJob():
   try:
     camera.takePhoto(photoName)
     write2box(photoName)
-    s.enter(DELAY_MS, 1, cameraJob)
+    s.enter(DELAY_S, 1, cameraJob)
     s.run()
   except CommandCamError as err:
     print(f'Caught error: {err}')
