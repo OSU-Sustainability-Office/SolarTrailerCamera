@@ -1,15 +1,17 @@
 # Filename: CameraViewer.py
 # Info: Quick little script to take photos over a web-camera.
 from subprocess import run
-from os import path, remove
+from os import path, remove, getlogin
+from sys import exit
 import sched, time
 from datetime import datetime
 
 # Constants for modifying script behavior
-CAMERA_NAME = 'C270 HD WEBCAM'
-USER_NAME = 'Milan Donhowe' # <-- change per PC
-DELAY_S = 15 * 60 # 15 minutes * 60 seconds = 15 minutes in seconds
-UPLOAD_PATH = path.join('C:\\', 'Users', USER_NAME, 'Box', 'Sustainability Photography', 'Programs', 'Solar Trailer', 'SolarTrailerCamera')
+CAMERA_NAME = 'C270 HD WEBCAM' # <-- might need to change
+DELAY_HOURS = 8   #<-- change this
+DELAY_S = DELAY_HOURS * 60 * 60
+RESOLUTION = "1280x720"
+UPLOAD_PATH = path.join('C:\\', 'Users', getlogin(), 'Box', 'Sustainability Photography', 'Programs', 'Solar Trailer', 'SolarTrailerCamera')
 
 if not path.exists(UPLOAD_PATH):
   print("Couldn't check the path:", UPLOAD_PATH)
@@ -17,8 +19,8 @@ if not path.exists(UPLOAD_PATH):
   exit(1)
 
 class CommandCamError(Exception):
-  """Custom exception for when the command camera program fails to take a picture"""
-  def __init__(self, code, message="CommandCam did not return zero response code!"):
+  """Custom exception for when the camera program fails to take a picture"""
+  def __init__(self, code, message="Camera program did not return zero response code!"):
     self.return_code = code
     self.message = message
     super().__init__(self.message)
@@ -31,7 +33,7 @@ class Camera:
     self._WEBCAM_NAME = cameraName
 
   def takePhoto(self, filename):
-    photoProgram = run(["CommandCam.exe", "/devname", self._WEBCAM_NAME, '/filename', filename], capture_output=True)
+    photoProgram = run(["dsgrab.exe", "-r", RESOLUTION, filename], capture_output=True)
     if photoProgram.returncode != 0:
       raise CommandCamError(photoProgram.returncode)
     return filename
@@ -58,7 +60,7 @@ s = sched.scheduler(time.time, time.sleep)
 
 def cameraJob():
   """Takes photograph from photo & uploads to Box"""
-  photoName = datetime.now().strftime("%d_%m_%Y@[%Hh_%Mm_%Ss].bmp")
+  photoName = datetime.now().strftime("%d_%m_%Y@[%Hh_%Mm_%Ss].jpg")
   try:
     camera.takePhoto(photoName)
     write2box(photoName)
